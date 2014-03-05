@@ -35,9 +35,9 @@ namespace neural {
      * @param each element contains the weights for one Neuron
      */
     void init_neurons(vector<vector<double> > neuron_data);
-    int input_count;
     shared_ptr<Layer> prev;
     shared_ptr<Layer> next;
+    int input_count;
     vector<Neuron> neurons;
   };
 }
