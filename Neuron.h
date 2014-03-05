@@ -7,7 +7,7 @@
 
 namespace neural {
   namespace activation {
-    std::function<double (double)> sigmoid_func = 
+    const std::function<double (double)> sigmoid_func = 
       [](double in ) -> double {
       if (in < -45.0) {
 	return 0.0;
@@ -18,12 +18,12 @@ namespace neural {
       }
     };
 
-    std::function<double (double)> sigmoid_deriv =
+    const std::function<double (double)> sigmoid_deriv =
       [](double in) -> double {
       return in * (1 - in);
     };
 
-    std::function<double (double)> tanh_func =
+    const std::function<double (double)> tanh_func =
       [](double in) -> double {
       if (in < -10.0) {
 	return -1.0;
@@ -34,7 +34,7 @@ namespace neural {
       }
     };
 
-    std::function<double (double)> tanh_deriv =
+    const std::function<double (double)> tanh_deriv =
       [](double in) -> double {
       return (1 + in) * (1-in);
     };
@@ -45,7 +45,7 @@ namespace neural {
      * Create a new Neuron
      * @param inputSize how many inputs the Neuron has, not including its bias
      * @param activationFunc a lambda or function pointer describing the Neuron's
-     *                       activation function - defaults to sigmoid
+     *                       activation function - defaults to sigmoid_func
      * @param derivFunc a lambda or function pointer describing the derivative of
      *                 activationFunc, except input is activationFunc(x) rather 
      *                 than x - this lets us pass Output() to derivFunc directly
@@ -57,11 +57,26 @@ namespace neural {
 	   );
 
     /**
+     * Create a neuron with specific weights (including one for its bias!)
+     * @param weights the weights for this neuron, in order - last one is for the bias
+     * @param activationFunc a lambda or function pointer describing the Neuron's
+     *                       activation function - defaults to sigmoid_func
+     * @param derivFunc a lambda or function pointer describing the derivative of
+     *                 activationFunc, except input is activationFunc(x) rather 
+     *                 than x - this lets us pass Output() to derivFunc directly
+     *                  - defaults to sigmoid_deriv
+     */
+    Neuron(std::vector<double> weights, 
+	   std::function<double (double)> activationFunc = activation::sigmoid_func,
+	   std::function<double (double)> derivFunc = activation::sigmoid_deriv
+	   );
+
+    /**
      * Update this Neuron's output value - use Output() to access it
      * @param inputs the input values for this neuron (typically outputs of all Neurons in the previous Layer)
      */
     void updateOutput(std::vector<double> inputs);
-    inline double Output() { return output; }
+    inline double Output() const { return output; }
 
     /**
      * Update the delta value
@@ -75,7 +90,7 @@ namespace neural {
      * Get current delta (need to call updateDelta() first!)
      * @param wrt (with-regard-to) optionally multiply delta with weight for one of this Neuron's inputs
      */
-    inline double Delta(int wrt = -1) {
+    inline double Delta(int wrt = -1) const {
       if (wrt < 0 || wrt >= weights.size() - 1) {
 	return delta;
       } else {
