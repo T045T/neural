@@ -15,11 +15,11 @@ namespace neural {
       shared_ptr<Layer> lastHidden(firstHidden);
       for (int i = 1; i < hidden.size(); i++) {
 	shared_ptr<Layer> tmp(new Layer(hidden[i], lastHidden));
-	lastHidden->addNextLayer(tmp);
+	lastHidden->setNextLayer(tmp);
 	lastHidden = tmp;
       }
       outputLayer = shared_ptr<Layer>(new Layer(output, lastHidden));
-      lastHidden->addNextLayer(outputLayer);
+      lastHidden->setNextLayer(outputLayer);
     } else {
       // no hidden layer!
       outputLayer = shared_ptr<Layer>(new Layer(output, input));

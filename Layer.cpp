@@ -2,44 +2,130 @@
 #include <cassert>
 
 namespace neural {
-  Layer::Layer(int neuron_count, shared_ptr<Layer> p) :
-    prev(p),
+  Layer::Layer(int neuron_count, shared_ptr<Layer> previous) :
+    prev(previous),
     next(NULL)
   {
     if (prev) {
       input_count = prev->size();
-      //prev->addNextLayer(shared_ptr<Layer>(this));
     }
     init_neurons(neuron_count, input_count);
   }
-  Layer::Layer(vector<vector<double> > neuron_data, shared_ptr<Layer> p) :
-    prev(p),
+  Layer::Layer(vector<vector<double> > neuron_data, shared_ptr<Layer> previous) :
+    prev(previous),
     next(NULL)
   {
     if (prev) {
       input_count = prev->size();
-      //prev->addNextLayer(shared_ptr<Layer>(this));
     }
     init_neurons(neuron_data);
   }
 
-  Layer::Layer(int neuron_count, int i) : 
+  Layer::Layer(int neuron_count, int inputs) : 
     prev(NULL),
     next(NULL),
-    input_count(i)
+    input_count(inputs)
   {
     init_neurons(neuron_count, input_count);
   }
-  Layer::Layer(vector<vector<double> > neuron_data, int i) : 
+  Layer::Layer(vector<vector<double> > neuron_data, int inputs) : 
     prev(NULL),
     next(NULL),
-    input_count(i)
+    input_count(inputs)
   {
     init_neurons(neuron_data);
   }
-  void Layer::addNextLayer(shared_ptr<Layer> n) {
-    next = n;
+  Layer::Layer(vector<Neuron> neuron_vector, shared_ptr<Layer> previous) :
+    prev(previous),
+    next(NULL),
+    input_count(previous->size()),
+    neurons(neuron_vector)
+  {}
+  Layer::Layer(vector<Neuron> neuron_vector, int inputs) :
+    prev(NULL),
+    next(NULL),
+    input_count(inputs),
+    neurons(neuron_vector)
+  {}
+
+  /**
+   * Read a serialized Layer from a file
+   * @param s an input stream containing a serialized Layer
+   * @param p the previous(ly deserialized) Layer
+   * @return a Layer equivalent to what was serialized if reading was successful, an empty Layer (0 neurons, 0 inputs) if it wasn't
+   */
+  Layer Layer::read(istream &s, shared_ptr<Layer> previous) {
+    if(!s.good()) return Layer(0, 0);
+    std::string keyword;
+    s >> keyword;
+    if(keyword != "LAYER") return Layer(0,0);
+    
+    s >> keyword;
+    if(keyword != "inputs") return Layer(0,0);
+    int inputs;
+    s >> inputs;
+    if(inputs != previous->size()) return Layer(0,0);
+    
+    s >> keyword;
+    if(keyword != "neurons") return Layer(0,0);
+    int neuron_count;
+    s >> neuron_count;
+    // consume newline
+    char c = s.get();
+    if (c != '\n') return Layer(0,0);
+
+    vector<Neuron> neuron_vector = readNeurons(s, neuron_count);
+    if (neuron_vector.size() == 0) return Layer(0,0);
+    return Layer(neuron_vector, previous);
   }
+
+  Layer Layer::read(istream &s, int input_size) {
+    if(!s.good()) return Layer(0, 0);
+    std::string keyword;
+    s >> keyword;
+    if(keyword != "LAYER") {
+      cerr << "Missing LAYER keyword";
+      return Layer(0,0);
+    }
+    
+    s >> keyword;
+    if(keyword != "inputs") {
+      cerr << "Missing inputs" << endl;
+      return Layer(0,0);
+    }
+    int inputs;
+    s >> inputs;
+    if(inputs != input_size) {
+      cerr << "Wrong input size!" << endl;
+      return Layer(0,0);
+    }
+    
+    s >> keyword;
+    if(keyword != "neurons") {
+      cerr << "Missing neuron count" << endl;
+      return Layer(0,0);
+    }
+    int neuron_count;
+    s >> neuron_count;
+    // consume newline
+    char c = s.get();
+    if (c != '\n') {
+      cerr << "Missing newline after neuron count" << endl;
+      return Layer(0,0);
+    }
+
+    vector<Neuron> neuron_vector = readNeurons(s, neuron_count);
+    if (neuron_vector.size() == 0) {
+      cerr << "Error reading neurons" << endl;
+      return Layer(0,0);
+    }
+    return Layer(neuron_vector, input_size);
+  }
+
+  void Layer::setNextLayer(shared_ptr<Layer> n) {
+      next = n;
+  }
+
   void Layer::updateOutputs(vector<double> inputs) {
     output.clear();
     for (vector<Neuron>::iterator it = neurons.begin(); it != neurons.end(); it++) {
@@ -74,6 +160,18 @@ namespace neural {
     }
   }
 
+  bool Layer::write(ostream &s) const {
+    if (!s.good()) return false;
+    s << "LAYER\n"
+      << "inputs " << input_count << "\n"
+      << "neurons "     << size() << "\n";
+    bool success = true;
+    for (vector<Neuron>::const_iterator it = neurons.begin(); it != neurons.end(); it++) {
+      success &= it->write(s);
+    }
+    return success;
+  }
+
   void Layer::init_neurons(int neuron_count, int inputs) {
     for (int i = 0; i < neuron_count; i++) {
       // emplace_back calls the constructor inside the vector, avoiding copies
@@ -85,5 +183,19 @@ namespace neural {
       assert(it->size() == input_count);
       neurons.emplace_back(*it);
     }
+  }
+
+  vector<Neuron> Layer::readNeurons(istream &s, int count) {
+    vector<Neuron> neuron_vector;
+    Neuron current(0);
+    for(int i = 0; i < count; i++) {
+      current = Neuron::read(s);
+      // Empty Neuron means something went wrong while reading Neuron data
+      if (current.InputSize() == 0 || !s.good()) {
+	return vector<Neuron>();
+      }
+      neuron_vector.push_back(current);
+    }
+    return neuron_vector;
   }
 }

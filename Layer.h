@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <vector>
+#include <fstream>
+#include <iostream>
 #include "Neuron.h"
 
 using namespace std;
@@ -10,11 +12,15 @@ using namespace std;
 namespace neural {
   class Layer {
   public:
-    Layer(int neuron_count, shared_ptr<Layer> p);
-    Layer(vector<vector<double> > neuron_data, shared_ptr<Layer> p);
-    Layer(int neuron_count, int i);
-    Layer(vector<vector<double> > neuron_data, int i);
-    void addNextLayer(shared_ptr<Layer> n);
+    Layer(int neuron_count, shared_ptr<Layer> previous);
+    Layer(vector<vector<double> > neuron_data, shared_ptr<Layer> previous);
+    Layer(int neuron_count, int inputs);
+    Layer(vector<vector<double> > neuron_data, int inputs);
+    Layer(vector<Neuron> neuron_vector, shared_ptr<Layer> previous);
+    Layer(vector<Neuron> neuron_vector, int inputs);
+    static Layer read(istream &s, shared_ptr<Layer> previous);
+    static Layer read(istream &s, int input_size);
+    void setNextLayer(shared_ptr<Layer> n);
     void updateOutputs(vector<double> inputs);
     /**
      * Recursively calculate the deltas, moving from this layer to the input layer
@@ -26,7 +32,9 @@ namespace neural {
 
     void updateWeights(vector<double> inputs, double learningRate);
     //! Get the number of Neurons in this layer
-    inline int size() { return neurons.size(); };
+    inline int size() const { return neurons.size(); };
+    bool write(ostream &s) const;
+    
     vector<double> output;
   private:
     void init_neurons(int neuron_count, int inputs);
@@ -35,6 +43,7 @@ namespace neural {
      * @param each element contains the weights for one Neuron
      */
     void init_neurons(vector<vector<double> > neuron_data);
+    static vector<Neuron> readNeurons(istream &s, int count);
     shared_ptr<Layer> prev;
     shared_ptr<Layer> next;
     int input_count;
