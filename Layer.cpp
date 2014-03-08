@@ -4,7 +4,7 @@
 namespace neural {
   Layer::Layer(int neuron_count, shared_ptr<Layer> previous) :
     prev(previous),
-    next(NULL)
+    next()
   {
     if (prev) {
       input_count = prev->size();
@@ -13,7 +13,7 @@ namespace neural {
   }
   Layer::Layer(vector<vector<double> > neuron_data, shared_ptr<Layer> previous) :
     prev(previous),
-    next(NULL)
+    next()
   {
     if (prev) {
       input_count = prev->size();
@@ -54,56 +54,59 @@ namespace neural {
    * @param p the previous(ly deserialized) Layer
    * @return a Layer equivalent to what was serialized if reading was successful, an empty Layer (0 neurons, 0 inputs) if it wasn't
    */
-  Layer Layer::read(istream &s, shared_ptr<Layer> previous) {
-    if(!s.good()) return Layer(0, 0);
+  Layer* Layer::read(istream &s, shared_ptr<Layer> previous) {
+    Layer* fail = new Layer(0,0);
+    if(!s.good()) return fail;
     std::string keyword;
     s >> keyword;
-    if(keyword != "LAYER") return Layer(0,0);
+    if(keyword != "LAYER") return fail;
     
     s >> keyword;
-    if(keyword != "inputs") return Layer(0,0);
+    if(keyword != "inputs") return fail;
     int inputs;
     s >> inputs;
-    if(inputs != previous->size()) return Layer(0,0);
+    if(inputs != previous->size()) return fail;
     
     s >> keyword;
-    if(keyword != "neurons") return Layer(0,0);
+    if(keyword != "neurons") return fail;
     int neuron_count;
     s >> neuron_count;
     // consume newline
     char c = s.get();
-    if (c != '\n') return Layer(0,0);
+    if (c != '\n') return fail;
 
     vector<Neuron> neuron_vector = readNeurons(s, neuron_count);
-    if (neuron_vector.size() == 0) return Layer(0,0);
-    return Layer(neuron_vector, previous);
+    if (neuron_vector.size() == 0) return fail;
+    delete fail;
+    return new Layer(neuron_vector, previous);
   }
 
-  Layer Layer::read(istream &s, int input_size) {
-    if(!s.good()) return Layer(0, 0);
+  Layer* Layer::read(istream &s, int input_size) {
+    Layer* fail = new Layer(0,0);
+    if(!s.good()) return fail;
     std::string keyword;
     s >> keyword;
     if(keyword != "LAYER") {
       cerr << "Missing LAYER keyword";
-      return Layer(0,0);
+      return fail;
     }
     
     s >> keyword;
     if(keyword != "inputs") {
       cerr << "Missing inputs" << endl;
-      return Layer(0,0);
+      return fail;
     }
     int inputs;
     s >> inputs;
     if(inputs != input_size) {
       cerr << "Wrong input size!" << endl;
-      return Layer(0,0);
+      return fail;
     }
     
     s >> keyword;
     if(keyword != "neurons") {
       cerr << "Missing neuron count" << endl;
-      return Layer(0,0);
+      return fail;
     }
     int neuron_count;
     s >> neuron_count;
@@ -111,15 +114,16 @@ namespace neural {
     char c = s.get();
     if (c != '\n') {
       cerr << "Missing newline after neuron count" << endl;
-      return Layer(0,0);
+      return fail;
     }
 
     vector<Neuron> neuron_vector = readNeurons(s, neuron_count);
     if (neuron_vector.size() == 0) {
       cerr << "Error reading neurons" << endl;
-      return Layer(0,0);
+      return fail;
     }
-    return Layer(neuron_vector, input_size);
+    delete fail;
+    return new Layer(neuron_vector, input_size);
   }
 
   void Layer::setNextLayer(shared_ptr<Layer> n) {

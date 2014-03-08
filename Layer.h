@@ -18,8 +18,8 @@ namespace neural {
     Layer(vector<vector<double> > neuron_data, int inputs);
     Layer(vector<Neuron> neuron_vector, shared_ptr<Layer> previous);
     Layer(vector<Neuron> neuron_vector, int inputs);
-    static Layer read(istream &s, shared_ptr<Layer> previous);
-    static Layer read(istream &s, int input_size);
+    static Layer* read(istream &s, shared_ptr<Layer> previous);
+    static Layer* read(istream &s, int input_size);
     void setNextLayer(shared_ptr<Layer> n);
     void updateOutputs(vector<double> inputs);
     /**
@@ -34,9 +34,10 @@ namespace neural {
     //! Get the number of Neurons in this layer
     inline int size() const { return neurons.size(); };
     bool write(ostream &s) const;
-    
-    vector<double> output;
+    inline vector<double> Output() { return output; };
+    inline shared_ptr<Layer> nextLayer() const { return next; };
   private:
+    vector<double> output;
     void init_neurons(int neuron_count, int inputs);
     /**
      * init Neurons with pre-learned data
