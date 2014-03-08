@@ -19,8 +19,9 @@ namespace neural {
      * @param hidden an optional vector containing the number of neurons for each hidden layer
      */
     Network(int input, int output, vector<int> hidden = vector<int>());
-    Network(string &filename);
-    Network(istream &s);
+    static Network read(string &filename);
+    static Network read(istream &s);
+    
     /**
      * Train the net with a single test case
      * @return the error for this case after back propagation
@@ -31,10 +32,14 @@ namespace neural {
      * Run the neural network for the given input
      */
     vector<double> run(vector<double> input);
-
+    inline int Layers() const { return layerCount; };
+    inline int Inputs() const { return inputLayer.size(); };
+    inline int Outputs() const { return outputLayer->size(); };
     bool write(string &filename) const;
     bool write(ostream &s) const;
   private:
+    Network(int input, shared_ptr<Layer> hidden, shared_ptr<Layer> output);
+    int layerCount;
     //! Input layer just consists of data
     vector<double> inputLayer;
     // Layers in between are accessed via prev and next pointers
