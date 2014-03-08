@@ -91,11 +91,6 @@ namespace neural {
     }
     layers--;
     if (layers == 0) {
-      // Consume trailing newline
-      c = s.get();
-      if (c != '\n') {
-	return fail;
-      }
       return Network(input_size, shared_ptr<Layer>(NULL), first);
     }
     shared_ptr<Layer> current = shared_ptr<Layer>(Layer::read(s, first));
@@ -111,11 +106,6 @@ namespace neural {
 	return fail;
       }
       layers--;
-    }
-    // Consume trailing newline
-    c = s.get();
-    if (c != '\n') {
-      return fail;
     }
     return Network(input_size, first, current);
   }
@@ -190,7 +180,6 @@ namespace neural {
     } while (currentLayer->nextLayer());
     // Write output layer
     outputLayer->write(s);
-    s << endl;
     return true;
   }
 }
