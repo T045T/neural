@@ -26,7 +26,7 @@ namespace neural {
      * Train the net with a single test case
      * @return the error for this case after back propagation
      */
-    double trainSingle(vector<double> input, vector<double> expected_output, double learningRate);
+    double trainSingle(vector<double> input, vector<double> expected_output, double learningRate = 0.3);
 
     /**
      * Run the neural network for the given input
@@ -35,6 +35,7 @@ namespace neural {
     inline int Layers() const { return layerCount; };
     inline int Inputs() const { return inputLayer.size(); };
     inline int Outputs() const { return outputLayer->size(); };
+    inline vector<double> Output() const { return outputLayer->Output(); };
     bool write(string &filename) const;
     bool write(ostream &s) const;
   private:
