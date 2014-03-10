@@ -1,4 +1,4 @@
-#include "Neuron.h"
+#include "neural/Neuron.h"
 #include <cstdlib>
 #include <cassert>
 

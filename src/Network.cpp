@@ -1,4 +1,4 @@
-#include "Network.h"
+#include "neural/Network.h"
 #include <cassert>
 
 namespace neural {

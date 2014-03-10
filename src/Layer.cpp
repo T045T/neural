@@ -1,4 +1,4 @@
-#include "Layer.h"
+#include "neural/Layer.h"
 #include <cassert>
 
 namespace neural {
