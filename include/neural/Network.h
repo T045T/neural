@@ -10,6 +10,9 @@
 using namespace std;
 
 namespace neural {
+  /**
+   * A back-propagation neural network.
+   */
   class Network {
   public:
     /**
@@ -24,13 +27,12 @@ namespace neural {
     
     /**
      * Train the net with a single test case
+     * @param learning_rate controls the speed of learning (see Neuron::updateWeights() )
      * @return the error for this case after back propagation
      */
-    double trainSingle(vector<double> input, vector<double> expected_output, double learningRate = 0.3);
+    double trainSingle(vector<double> input, vector<double> expected_output, double learning_rate = 0.3);
 
-    /**
-     * Run the neural network for the given input
-     */
+    //! Run the neural network for the given input
     vector<double> run(vector<double> input);
     inline int Layers() const { return layerCount; };
     inline int Inputs() const { return inputLayer.size(); };

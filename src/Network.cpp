@@ -110,7 +110,7 @@ namespace neural {
     return Network(input_size, first, current);
   }
 
-  double Network::trainSingle(vector<double> input, vector<double> expected_output, double learningRate) {
+  double Network::trainSingle(vector<double> input, vector<double> expected_output, double learning_rate) {
     assert(input.size() == inputLayer.size());
     assert(expected_output.size() == outputLayer->size());
     inputLayer = input;
@@ -127,7 +127,7 @@ namespace neural {
       deltas.push_back(expected_output[i] - outputLayer->Output()[i]);
     }
     outputLayer->updateDeltas(deltas);
-    startLayer->updateWeights(inputLayer, learningRate);
+    startLayer->updateWeights(inputLayer, learning_rate);
 
     // Calculate outputs with updated weights
     startLayer->updateOutputs(inputLayer);

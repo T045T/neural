@@ -141,11 +141,11 @@ namespace neural {
     }
   }
 
-  void Layer::updateDeltas(vector<double> summedWeighedDeltas) {
-    assert(summedWeighedDeltas.size() == this->size());
+  void Layer::updateDeltas(vector<double> summed_weighed_deltas) {
+    assert(summed_weighed_deltas.size() == this->size());
     vector<double> newDeltas(input_count);
     for (int i = 0; i < size(); i++) {
-      neurons[i].updateDelta(summedWeighedDeltas[i]);
+      neurons[i].updateDelta(summed_weighed_deltas[i]);
       for (int j = 0; j < newDeltas.size(); j++) {
 	newDeltas[j] += neurons[i].Delta(j);
       }
@@ -155,13 +155,13 @@ namespace neural {
     }
   }
 
-  void Layer::updateWeights(vector<double> inputs, double learningRate) {
+  void Layer::updateWeights(vector<double> inputs, double learning_rate) {
     for (vector<Neuron>::iterator it = neurons.begin(); it != neurons.end(); it++) {
-      it->updateWeights(inputs, learningRate);
+      it->updateWeights(inputs, learning_rate);
     }
     if(next) {
       // DON'T update the output after adjusting weights, first adjust all other weights
-      next->updateWeights(this->output, learningRate);
+      next->updateWeights(this->output, learning_rate);
     }
   }
 

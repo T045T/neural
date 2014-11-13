@@ -4,26 +4,26 @@
 
 namespace neural {
   Neuron::Neuron(int inputSize, 
-		 std::function<double (double)> activationFunc,
-		 std::function<double (double)> derivFunc) :
-    activationFunction(activationFunc),
-    derivFunction(derivFunc)
+		 std::function<double (double)> activation_func,
+		 std::function<double (double)> deriv_func) :
+    activationFunction(activation_func),
+    derivFunction(deriv_func)
  {
    initWeightsRandom(inputSize);
  }
 
   Neuron::Neuron(std::vector<double> w, 
-		 std::function<double (double)> activationFunc,
-		 std::function<double (double)> derivFunc) :
-    activationFunction(activationFunc),
-    derivFunction(derivFunc)
+		 std::function<double (double)> activation_func,
+		 std::function<double (double)> deriv_func) :
+    activationFunction(activation_func),
+    derivFunction(deriv_func)
   {
     initWeights(w);
   }
 
   Neuron Neuron::read(std::istream &s, 
-		      std::function<double (double)> activationFunc,
-		      std::function<double (double)> derivFunc)
+		      std::function<double (double)> activation_func,
+		      std::function<double (double)> deriv_func)
   {
     if (!s.good()) return Neuron(0);
     std::string keyword;
@@ -51,7 +51,7 @@ namespace neural {
       c = s.get();
     } while (s.good() && c != '\n');
 
-    return Neuron(w, activationFunc, derivFunc);
+    return Neuron(w, activation_func, deriv_func);
   }
 
   void Neuron::updateOutput(std::vector<double> inputs) {
@@ -63,17 +63,17 @@ namespace neural {
     output = activationFunction(output);
   }
   
-  void Neuron::updateDelta(double deltaSum) {
-    delta = derivFunction(output) * deltaSum;
+  void Neuron::updateDelta(double delta_sum) {
+    delta = derivFunction(output) * delta_sum;
   }
 
-  void Neuron::updateWeights(std::vector<double> input, double learningRate) {
+  void Neuron::updateWeights(std::vector<double> input, double learning_rate) {
     assert(input.size() + 1 == weights.size());
     for(int i = 0; i < weights.size() - 1; i++) {
-      weights[i] += input[i] * delta * learningRate;
+      weights[i] += input[i] * delta * learning_rate;
     }
     // bias
-    weights[weights.size() - 1] = delta * learningRate;
+    weights[weights.size() - 1] = delta * learning_rate;
   }
 
   bool Neuron::write(std::ostream &s) const {
