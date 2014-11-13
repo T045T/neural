@@ -21,10 +21,6 @@ namespace neural {
     initWeights(w);
   }
 
-  /**
-   * Read a previously serialized Neuron from a stream - it anything goes wrong,
-   * this will return a Neuron with an InputSize() of 0!
-   */
   Neuron Neuron::read(std::istream &s, 
 		      std::function<double (double)> activationFunc,
 		      std::function<double (double)> derivFunc)

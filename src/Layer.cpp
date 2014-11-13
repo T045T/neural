@@ -140,6 +140,7 @@ namespace neural {
       next->updateOutputs(this->output);
     }
   }
+
   void Layer::updateDeltas(vector<double> summedWeighedDeltas) {
     assert(summedWeighedDeltas.size() == this->size());
     vector<double> newDeltas(input_count);

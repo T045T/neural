@@ -129,8 +129,10 @@ namespace neural {
     outputLayer->updateDeltas(deltas);
     startLayer->updateWeights(inputLayer, learningRate);
 
-    // Calculate outputs with updated weights and mean squared error
+    // Calculate outputs with updated weights
     startLayer->updateOutputs(inputLayer);
+
+    // Calculate mean squared error
     double mse = 0.0;
     for( int i = 0; i < outputLayer->size(); i++) {
       mse += (expected_output[i] - outputLayer->Output()[i]) * (expected_output[i] - outputLayer->Output()[i]);

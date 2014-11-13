@@ -10,6 +10,12 @@
 #include "Activation.h"
 
 namespace neural {
+  /**
+   * This class models a single neuron in one of the @link Layer Layers @endlink that make up a Network
+   *
+   * Each Neuron holds a set of input weights, an additional bias weight, and an activation function
+   * along with that function's derivative.
+   */
   class Neuron {
   public:
 
@@ -17,11 +23,11 @@ namespace neural {
      * Create a new Neuron
      * @param inputSize how many inputs the Neuron has, not including its bias
      * @param activationFunc a lambda or function pointer describing the Neuron's
-     *                       activation function - defaults to tanh_func
+     *                       activation function -- defaults to tanh_func
      * @param derivFunc a lambda or function pointer describing the derivative of
-     *                 activationFunc, except input is activationFunc(x) rather 
-     *                 than x - this lets us pass Output() to derivFunc directly
-     *                  - defaults to tanh_deriv
+     *                 \p activationFunc, except input is \p activationFunc(x) rather 
+     *                 than x -- this lets us pass Neuron::Output() to \p derivFunc directly
+     *                 (defaults to tanh_deriv)
      */
     Neuron(int inputSize, 
 	   std::function<double (double)> activationFunc = activation::tanh_func,
@@ -30,13 +36,13 @@ namespace neural {
 
     /**
      * Create a neuron with specific weights (including one for its bias!)
-     * @param weights the weights for this neuron, in order - last one is for the bias
+     * @param weights the weights for this neuron, in order -- last one is for the bias
      * @param activationFunc a lambda or function pointer describing the Neuron's
-     *                       activation function - defaults to tanh_func
+     *                       activation function -- defaults to tanh_func
      * @param derivFunc a lambda or function pointer describing the derivative of
-     *                 activationFunc, except input is activationFunc(x) rather 
-     *                 than x - this lets us pass Output() to derivFunc directly
-     *                  - defaults to tanh_deriv
+     *                 \p activationFunc, except input is \p activationFunc(x) rather 
+     *                 than x -- this lets us pass Neural::Output() to \p derivFunc directly
+     *                 (defaults to tanh_deriv)
      */
     Neuron(std::vector<double> w, 
 	   std::function<double (double)> activationFunc = activation::tanh_func,
@@ -44,29 +50,39 @@ namespace neural {
 	   );
 
     /**
-     * Construct Neuron from input stream - defaults to tanh activation function
+     * Construct Neuron from input stream \p s with the given activation function
+     * (defaults to tanh) -- if anything goes wrong,
+     * this will return a Neuron with an InputSize() of 0!
      */
     static Neuron read(std::istream &s, 
 	   std::function<double (double)> activationFunc = activation::tanh_func,
 	   std::function<double (double)> derivFunc = activation::tanh_deriv
 	   );
+    
     /**
-     * Update this Neuron's output value - use Output() to access it
-     * @param inputs the input values for this neuron (typically outputs of all Neurons in the previous Layer)
+     * Update this Neuron's output value -- use Neuron::Output() to access it
+     * @param inputs the input values for this neuron (typically outputs of all neurons in the previous Layer)
      */
     void updateOutput(std::vector<double> inputs);
+
+    /**
+     * Get the current output value -- this is only updated by Neuron::updateOutput(), *not* automatically!
+     */
     inline double Output() const { return output; }
 
     /**
      * Update the delta value
-     * @param deltaSum the summed deltas of the following layer, weighed by the input weight corresponding to this Neuron
-     *                 f.i. (this Neuron has Index 0 in its layer, next layer has 2 Neurons):
-     *                 deltaSum = next_layer.neurons[0].delta * next_layer.neurons[0].weights[0]
-     *                          + next_layer.neurons[1].delta * next_layer.neurons[1].weights[0]
+     *
+     * This is the back-propagation this type of neural network gets its name from.
+     * @param deltaSum the summed deltas of the following layer, weighed by the input weight corresponding to this Neuron.
+     *   Example (this Neuron has Index 0 in its layer, next layer has 2 neurons):
+     *   \f$\text{deltaSum} = \text{next_layer.neurons[0].delta} * \text{next_layer.neurons[0].weights[0]}
+     *                    + \text{next_layer.neurons[1].delta} * \text{next_layer.neurons[1].weights[0]}\f$
      */
     void updateDelta(double deltaSum);
+
     /**
-     * Get current delta (need to call updateDelta() first!)
+     * Get current delta (need to call Neuron::updateDelta() first!)
      * @param wrt (with-regard-to) optionally multiply delta with weight for one of this Neuron's inputs
      */
     inline double Delta(int wrt = -1) const {
@@ -76,27 +92,34 @@ namespace neural {
 	return delta * weights[wrt];
       }
     }
-
-    inline int InputSize() { return weights.size() - 1; };
+    
     /**
-     * Update the weights using the delta calculated with @see updateDelta()
+     * Get the number of input weights for this Neuron -- this is equal to the number of neurons in the previous layer
+     */
+    inline int InputSize() { return weights.size() - 1; };
+    
+    /**
+     * Update the weights using the delta calculated with Neuron::updateDelta()
      * @param input the input to this layer
-     * @param learningRate the change in weight will be multiplied with this
+     * @param learningRate the change in weight will be multiplied with this --
      *                     higher values mean faster convergence, but are more likely
-     *                     to overshoot the actual minimum
+     *                     to overshoot the actual minimum.
      */
     void updateWeights(std::vector<double> input, double learningRate);
 
     /**
      * Write this Neuron's data to an output stream. Size is written in ASCII, weights 
-     * are stored as a binary blob - the activation function isn't saved at all!
+     * are stored as a binary blob -- the activation function isn't saved at all!
      *
      * @return true if writing to the stream was successfull, false if it was not
      */
     bool write(std::ostream &s) const;
 
   protected:
-     //! Initialize this Neuron's weights to random values between -0.5 and 0.5 - there will be one more weight than @param inputSize because of the bias
+    /**
+     * Initialize this Neuron's weights to random values between -0.5 and 0.5 -- there will be one more 
+     * weight than \p inputSize to account for the Neuron's bias
+     */
     void initWeightsRandom(int inputSize);
 
     /**
@@ -106,7 +129,7 @@ namespace neural {
     void initWeights(std::vector<double> w);
     std::function<double (double)> activationFunction;
     std::function<double (double)> derivFunction;
-    //! Size will be inputSize + 1 - the additional item is the bias
+    //! Size will be inputSize + 1 -- the additional item is the bias
     std::vector<double> weights;
     double output;
     double delta;
